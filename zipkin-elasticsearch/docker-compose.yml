@@ -1,0 +1,44 @@
+# This file uses the version 2 docker-compose file format, described here:
+# https://docs.docker.com/compose/compose-file/#version-2
+#
+# This runs the zipkin and zipkin-mysql containers, using docker-compose's
+# default networking to wire the containers together.
+#
+# Note that this file is meant for learning Zipkin, not production deployments.
+
+version: '2'
+
+services:
+  storage:
+    image: openzipkin/zipkin-elasticsearch6
+    container_name: elasticsearch
+    # Uncomment to expose the storage port for testing
+    ports:
+      - 9200:9200
+
+  # The zipkin process services the UI, and also exposes a POST endpoint that
+  # instrumentation can send trace data to. Scribe is disabled by default.
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    # Environment settings are defined here https://github.com/openzipkin/zipkin/tree/1.19.0/zipkin-server#environment-variables
+    environment:
+      - STORAGE_TYPE=elasticsearch
+      # Point the zipkin at the storage backend
+      - ES_HOSTS=elasticsearch
+      - HTTP_COLLECTOR_ENABLED=true
+      # Uncomment to see requests to and from elasticsearch
+      # - ES_HTTP_LOGGING=BODY               
+      # Uncomment to enable scribe
+      # - SCRIBE_ENABLED=true
+      # Uncomment to enable self-tracing
+      # - SELF_TRACING_ENABLED=true
+      # Uncomment to enable debug logging
+      # - JAVA_OPTS=-Dlogging.level.zipkin=DEBUG -Dlogging.level.zipkin2=DEBUG
+    ports:
+      # Port used for the Zipkin UI and HTTP Api
+      - 9411:9411
+      # Uncomment if you set SCRIBE_ENABLED=true
+      # - 9410:9410
+    depends_on:
+      - storage
