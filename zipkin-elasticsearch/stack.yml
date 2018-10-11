@@ -1,0 +1,20 @@
+version: '3.1'
+
+services:
+  storage:
+    image: openzipkin/zipkin-elasticsearch6
+    container_name: elasticsearch
+    # Uncomment to expose the storage port for testing
+    ports:
+      - 9200:9200
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin    
+    environment:
+      - STORAGE_TYPE=elasticsearch
+      - ES_HOSTS=elasticsearch
+      - HTTP_COLLECTOR_ENABLED=true
+    ports:
+      - 9411:9411
+    depends_on:
+      - storage
